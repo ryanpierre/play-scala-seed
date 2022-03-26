@@ -41,7 +41,7 @@ class AnimalRepository @Inject()(
 
 object AnimalRepository {
 
-    def cacheTtl(config: Configuration): Long =
+  def cacheTtl(config: Configuration): Long =
     Duration(config.get[Int]("mongodb.submission.timeToLiveInDays"), "days").toSeconds
 
   def indexes(config: Configuration) = Seq(

@@ -8,29 +8,59 @@ import models.Animal
 import models.UniqueId
 import java.time.LocalDateTime
 import play.api.libs.json.Json
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+import scala.util.Success
+import scala.util.Failure
+import play.api.libs.json.JsValue
 
-/**
- * This controller creates an `Action` to handle HTTP requests to the
- * application's home page.
- */
+/** This controller creates an `Action` to handle HTTP requests to the
+  * application's home page.
+  */
 @Singleton
-class AnimalController @Inject()(val controllerComponents: ControllerComponents, animalRepository: AnimalRepository) extends BaseController {
+class AnimalController @Inject() (
+    val controllerComponents: ControllerComponents,
+    animalRepository: AnimalRepository
+)(implicit ec: ExecutionContext)
+    extends BaseController {
 
-  /**
-   * Create an Action to render an HTML page.
-   *
-   * The configuration in the `routes` file means that this method
-   * will be called when the application receives a `GET` request with
-   * a path of `/`.
-   */
+  /** Create an Action to render an HTML page.
+    *
+    * The configuration in the `routes` file means that this method will be
+    * called when the application receives a `GET` request with a path of `/`.
+    */
 
-  def create() = Action { implicit request: Request[AnyContent] => 
-    val newAnimal = new Animal(UniqueId(), "Ryan", "Giraffe", LocalDateTime.now(),LocalDateTime.now() )
-    val success = animalRepository.insert(newAnimal) 
-    Ok(Json.toJson(newAnimal))
+  def create() = Action.async { implicit request: Request[AnyContent] =>
+    val reqBody: Option[JsValue] = request.body.asJson
+    val success = animalRepository.insert(
+      new Animal(
+        UniqueId(),
+        (reqBody.get("nickname")).as[String],
+        (reqBody.get("animalType")).as[String],
+        LocalDateTime.now(),
+        LocalDateTime.now()
+      )
+    )
+
+    success.map { wasSuccessful =>
+      Ok(wasSuccessful.toString())
+    }
   }
 
-  def index() = Action { implicit request: Request[AnyContent] =>
-    Ok("AnimalController OK!")
+  def index() = Action.async { implicit request: Request[AnyContent] =>
+    val results = animalRepository.findAll()
+
+    /*
+    .map when used on a future is different than an iterable !!
+
+    .map Creates a new future by applying a function to the successful
+    result of this future. If this future is completed with an exception
+    then the new future will also contain this exception.
+     */
+    results.map { animals =>
+      Ok(Json.toJson(animals))
+    }
   }
 }
