@@ -22,7 +22,7 @@ class AnimalRepository @Inject()(
 ) extends PlayMongoRepository[Animal](
   collectionName = "animal",
   mongoComponent = mongoComponent,
-  indexes = AnimalRepository.indexes(config),
+  indexes = Seq(),
   domainFormat   = Animal.format,
   replaceIndexes = true,
   extraCodecs    = Seq(
