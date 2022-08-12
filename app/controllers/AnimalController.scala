@@ -26,12 +26,6 @@ class AnimalController @Inject() (
 )(implicit ec: ExecutionContext)
     extends BaseController {
 
-  /** Create an Action to render an HTML page.
-    *
-    * The configuration in the `routes` file means that this method will be
-    * called when the application receives a `GET` request with a path of `/`.
-    */
-
   def create() = Action.async { implicit request: Request[AnyContent] =>
     val reqBody: Option[JsValue] = request.body.asJson
     val success = animalRepository.insert(
@@ -64,3 +58,4 @@ class AnimalController @Inject() (
     }
   }
 }
+
